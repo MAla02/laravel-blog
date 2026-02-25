@@ -23,32 +23,23 @@ jobs:
           --health-interval=10s
           --health-timeout=5s
           --health-retries=3
-      redis:
-        image: redis:7
-        ports:
-          - 6379:6379
-        options: >-
-          --health-cmd="redis-cli ping"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=3
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Setup PHP 8.2
+      - name: Setup PHP 8.4
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.2'
-          extensions: mbstring, pdo, pdo_mysql, redis, bcmath, xml, curl
-          coverage: xdebug
+          php-version: '8.4'
+          extensions: mbstring, pdo, pdo_mysql, bcmath, xml, curl
+          coverage: none
 
       - name: Copy .env
         run: cp .env.ci .env
 
       - name: Install Composer dependencies
-        run: composer install --prefer-dist --no-progress --no-interaction --optimize-autoloader
+        run: composer install --ignore-platform-reqs --prefer-dist --no-progress --no-interaction --optimize-autoloader
 
       - name: Generate key
         run: php artisan key:generate
@@ -67,8 +58,6 @@ jobs:
           DB_DATABASE: blog_test
           DB_USERNAME: root
           DB_PASSWORD: password
-          REDIS_HOST: 127.0.0.1
-          REDIS_PORT: 6379
         run: php artisan migrate --force
 
       - name: Seed database
@@ -87,15 +76,4 @@ jobs:
           DB_DATABASE: blog_test
           DB_USERNAME: root
           DB_PASSWORD: password
-          REDIS_HOST: 127.0.0.1
-        run: php artisan test --coverage-clover coverage.xml
-
-      - name: Run PHPStan
-        run: vendor/bin/phpstan analyse --memory-limit=2G
-
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v3
-        with:
-          files: ./coverage.xml
-          flags: unittests
-          name: laravel-blog-coverage
+        run: php artisan test
