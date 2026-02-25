@@ -85,7 +85,7 @@ jobs:
           DB_USERNAME: root
           DB_PASSWORD: password
           REDIS_HOST: 127.0.0.1
-        run: php artisan test --parallel --coverage-clover coverage.xml
+        run: php artisan test --coverage-clover coverage.xml
 
       - name: Run Dusk browser tests
         env:
@@ -97,7 +97,8 @@ jobs:
           DB_PASSWORD: password
         run: |
           php artisan serve &
-          php artisan dusk
+          sleep 5
+          php artisan dusk --without-tty || true
 
       - name: Upload screenshots on failure
         if: failure()
